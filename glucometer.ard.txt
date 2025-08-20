@@ -1,0 +1,54 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <SoftwareSerial.h>
+
+// Initialize the LCD (address 0x27, 16x2 size)
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Bluetooth module serial communication
+SoftwareSerial bluetooth(10, 11); // RX, TX
+
+// Glucose sensor pin
+const int glucoseSensorPin = A0; // Adjust according to your setup
+int glucoseValue = 0;
+
+void setup() {
+  // Start serial communication
+  Serial.begin(9600);
+  bluetooth.begin(9600);
+  
+  // Initialize the LCD with columns and rows
+  lcd.begin(16, 2); // Specify 16 columns and 2 rows
+  lcd.backlight();
+  
+  // Display initial message
+  lcd.setCursor(0, 0);
+  lcd.print("Glucose Level:");
+}
+
+void loop() {
+  // Read glucose sensor value
+  glucoseValue = analogRead(glucoseSensorPin);
+  
+  // Convert the analog value to glucose level (calibration may be needed)
+  float voltage = glucoseValue * (5.0 / 1023.0);
+  float glucoseLevel = voltage * 100; // Example conversion factor
+  
+  // Display the glucose level on the LCD
+  lcd.setCursor(0, 1);
+  lcd.print(glucoseLevel);
+  lcd.print(" mg/dL");
+
+  // Send the glucose level via Bluetooth
+  bluetooth.print("Glucose Level: ");
+  bluetooth.print(glucoseLevel);
+  bluetooth.println(" mg/dL");
+
+  // Print to Serial Monitor for debugging
+  Serial.print("Glucose Level: ");
+  Serial.print(glucoseLevel);
+  Serial.println(" mg/dL");
+  
+  // Delay before the next reading
+  delay(2000);  // Make sure this line is correct with no hidden characters
+}
